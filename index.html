@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PDF Viewer</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+        <style>
+            /* Optional: style the canvas */
+            #pdf-canvas {
+                border: 1px solid black;
+                display: block;
+                margin: 20px auto;
+            }
+
+              /* Prevent printing of the entire page */
+        @media print {
+            body {
+                display: none; /* Hides the body content when printing */
+            }
+        }
+
+        </style>
+    </head>
+
+    <body>
+
+        <canvas id="pdf-canvas"></canvas>
+
+        <script>
+            const url = 'http://localhost:8080/d.pdf';
+
+            // Setting the workerSrc to the correct path for the PDF.js worker
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
+
+            const loadingTask = pdfjsLib.getDocument(url);
+            loadingTask.promise.then(pdf => {
+                // Fetch the first page
+                pdf.getPage(1).then(page => {
+                    const scale = 1.5;
+                    const viewport = page.getViewport({ scale: scale });
+
+                    // Prepare canvas using PDF page dimensions
+                    const canvas = document.getElementById('pdf-canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    // Render PDF page into canvas context
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+                });
+            }).catch(error => {
+                console.error('Error loading PDF: ', error);
+            });
+
+              document.getElementById('pdf-canvas').addEventListener('contextmenu', function (e) {
+                    e.preventDefault();
+                });
+
+                document.addEventListener('keydown', function (e) {
+                        if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                            e.preventDefault();
+                            alert("Printing is disabled for this document.");
+                        }
+                    });
+        </script>
+
+    </body>
+
+</html>
